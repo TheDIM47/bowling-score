@@ -17,20 +17,22 @@ class SimpleGameSpec extends funsuite.AnyFunSuite with matchers.must.Matchers {
 
   val gp = new GamePlayer {
     // always zero and return self
-    def init: Game = TestGame(0, 0, 0)
+    private def init: Game = TestGame(0, 0, 0)
 
     // "play" list of pins and return state
-    def play(game: ModelSimple.Game, pins: List[Int]): ModelSimple.Game =
+    override def play(pins: List[Int]): ModelSimple.Game =
       pins.foldLeft(this.init)((g, p) => g.run(p))
   }
 
-  test("Test Game Player must init Game with zero values") {
-    val game: Game = gp.init
+  test("Game Player must init Game with zero values") {
+    val game: Game = gp.play(Nil)
     game.frame mustBe 0
     game.ball mustBe 0
     game.score mustBe 0
+  }
 
-    val res = gp.play(game, List(1, 2, 3))
+  test("Game Player must return valid state after 3 balls") {
+    val res = gp.play(List(1, 2, 3))
     println(res)
     res.frame mustBe 1
     res.ball mustBe 1

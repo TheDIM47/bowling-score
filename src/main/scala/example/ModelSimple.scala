@@ -10,8 +10,8 @@ object ModelSimple {
   }
 
   trait GamePlayer {
-    def init: Game
-    def play(game: Game, pins: List[Int]): Game
+    // def init: Game
+    def play(pins: List[Int]): Game
   }
 
 
