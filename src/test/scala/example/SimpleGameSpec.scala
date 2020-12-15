@@ -6,36 +6,84 @@ import example.ModelSimple.GamePlayer
 
 class SimpleGameSpec extends funsuite.AnyFunSuite with matchers.must.Matchers {
 
-  case class TestGame(frame: Int, ball: Int, score: Int) extends Game {
-    def run(pins: Int) = {
-      val newBall: Int  = if (ball == 0) 1 else 0
-      val newFrame: Int = frame + (if (ball == 1) 1 else 0)
-      val newScore: Int = score + pins
-      TestGame(newFrame, newBall, newScore)
+  /**
+   * Bowling Score calculator
+   * @param pins list of knocked pins [0..10]
+   * @return game score [0..300]
+   */
+  def score(pins: List[Int]): Int = {
+
+    @annotation.tailrec
+    def go(prev: List[Int], ps: List[Int], frame: Int, score: Int): Int = ps match {
+      // got strike
+      case 10 :: a :: b :: xs =>
+        go(a :: b :: prev, ps.tail, frame + 1, score + 10 + a + b)
+      // got spare
+      case a :: b :: xs if (a + b) == 10 =>
+        go(a :: b :: prev, xs, frame + 2, score + 10 + a)
+      // normal
+      case x :: xs =>
+        go(x :: prev, ps.tail, frame + 1, score + x)
+      case Nil =>
+        score
     }
-  }
 
-  val gp = new GamePlayer {
-    // always zero and return self
-    private def init: Game = TestGame(0, 0, 0)
-
-    // "play" list of pins and return state
-    override def play(pins: List[Int]): ModelSimple.Game =
-      pins.foldLeft(this.init)((g, p) => g.run(p))
+    go(
+      prev = Nil,
+      ps = pins,
+      frame = 0,
+      score = 0
+    )
   }
 
   test("Game Player must init Game with zero values") {
-    val game: Game = gp.play(Nil)
-    game.frame mustBe 0
-    game.ball mustBe 0
-    game.score mustBe 0
+    score(Nil) mustBe 0
   }
 
-  test("Game Player must return valid state after 3 balls") {
-    val res = gp.play(List(1, 2, 3))
-    println(res)
-    res.frame mustBe 1
-    res.ball mustBe 1
-    res.score mustBe 6
+  test("Game Player must return zero for unlucky player") {
+    score(List.fill(20)(0)) mustBe 0
+  }
+
+  test("Game Player must return valid state after 3 rolls") {
+    score(List(1, 2, 3)) mustBe 6
+  }
+
+  test("Game Player must return valid state after 7 rolls") {
+    score(List(3, 5, 10, 2, 4, 0, 0)) mustBe 30
+  }
+
+  test("Game Player must calculate valid score for 10x1") {
+    score(List.fill(10)(1)) mustBe 10
+  }
+
+  test("Game Player must calculate valid score for two rolls") {
+    score(List(4, 5)) mustBe 9
+  }
+
+  test("Game Player must calculate valid score for six rolls") {
+    score(List(5, 3, 4, 5, 3, 4)) mustBe 24
+    score(List(5, 5, 4, 5, 3, 4)) mustBe 30
+  }
+
+  test("Game Player must calculate valid score for first strike") {
+    score(List(10, 3, 4, 5, 3)) mustBe 32
+  }
+
+  test("Game Player must calculate valid score for second frame strike") {
+    score(List(5, 3, 10, 3, 4, 5, 3)) mustBe 40
+  }
+
+  test("Game Player must calculate valid score for lucky games") {
+    score(List.fill(10)(10)) mustBe 300
+    score(List(10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 9)) mustBe 299
+  }
+
+  test("Game Player must calculate valid score for last spare") {
+    score(List(4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 6, 5)) mustBe 60
+    score(List(4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 5, 5)) mustBe 54
+  }
+
+  test("Game Player must calculate valid score for pre-last strike") {
+    score(List(4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 10, 5, 5)) mustBe 65
   }
 }
