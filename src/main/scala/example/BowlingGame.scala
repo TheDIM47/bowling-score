@@ -14,37 +14,36 @@ object BowlingGame {
   def score(pins: List[Int]): Int = {
 
     @annotation.tailrec
-    def go(prev: List[Int], ps: List[Int], frame: Int, score: Int, roll: Int): Int = ps match {
+    def go(ps: List[Int], frame: Int, score: Int, roll: Int): Int = ps match {
       // got strike
       case 10 :: a :: b :: xs                              =>
 //        println(s"STRIKE: ps: $ps, frame: $frame, score: $score, roll: $roll")
         val frameScore = 10 + a + b
         if (frame == 9) {
-          go(a :: b :: prev, Nil, frame + 1, score + frameScore, roll)
+          go(Nil, frame + 1, score + frameScore, roll)
         } else {
-          go(a :: b :: prev, ps.tail, frame + 1, score + frameScore, roll)
+          go(ps.tail, frame + 1, score + frameScore, roll)
         }
       // got spare
       case a :: b :: c :: xs if (a + b) == 10 && roll == 0 =>
 //        println(s"SPARE: ps: $ps, frame: $frame, score: $score, roll: $roll")
         val frameScore = 10 + c
         if (frame == 9) {
-          go(a :: b :: prev, Nil, frame + 2, score + frameScore, roll)
+          go(Nil, frame + 2, score + frameScore, roll)
         } else {
-          go(a :: b :: prev, c :: xs, frame + 2, score + frameScore, roll)
+          go(c :: xs, frame + 2, score + frameScore, roll)
         }
       // normal
       case x :: xs                                         =>
 //        println(s"NORML: ps: $ps, frame: $frame, score: $score, roll: $roll")
         val nextRoll  = if (roll == 0) 1 else 0
         val nextFrame = frame + (if (roll == 0) 0 else 1)
-        go(x :: prev, xs, nextFrame, score + x, nextRoll)
+        go(xs, nextFrame, score + x, nextRoll)
       case Nil                                             =>
         score
     }
 
     go(
-      prev = Nil,
       ps = pins,
       frame = 0,
       score = 0,
