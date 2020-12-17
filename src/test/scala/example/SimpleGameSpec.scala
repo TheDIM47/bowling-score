@@ -70,6 +70,10 @@ class SimpleGameSpec extends funsuite.AnyFunSuite
     score(List(4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 4, 1, 10, 5, 5)) mustBe 65
   }
 
+  test("calc test result") {
+    score(List(10, 10, 4, 5, 6, 4, 6, 4, 8, 1, 0, 1, 10, 5, 5, 10, 6, 4)) mustBe 156
+  }
+
   test("Game player should calculate random games") {
     forAll(gameGen) { r =>
       val (f, l) = r
